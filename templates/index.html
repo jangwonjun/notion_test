@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>과제 제출</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>스마트 과제 제출</h1>
+    <form action="/add_homework" method="POST" enctype="multipart/form-data">
+        <label for="homework_title">과제 제목:</label>
+        <input type="text" id="homework_title" name="homework_title" required><br><br>
+        
+        <label for="class_name">반명:</label>
+        <input type="text" id="class_name" name="class_name" autocomplete="off" placeholder="반명을 입력하세요..." oninput="filterClasses()">
+        <ul id="class-list"></ul><br><br>
+        
+        <label for="student_name">학생 이름:</label>
+        <input type="text" id="student_name" name="student_name" required><br><br>
+        
+        <label for="submission_status">제출 여부:</label>
+        <select id="submission_status" name="submission_status" required>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select><br><br>
+
+        <div id="due_date_field" style="display: none;">
+            <label for="due_date">제출 마감일:</label>
+            <input type="date" id="due_date" name="due_date"><br><br>
+        </div>
+
+        <label for="attachments">첨부 파일:</label>
+        <input type="file" id="attachments" name="attachments" multiple><br><br>
+
+        <button type="submit">제출</button>
+    </form>
+
+    <script>
+        // 미리 정의된 반명 목록 (예시)
+        const classes = [
+            "중3S", "고1M", "고2A", "중2B", "고3S", "중1A"
+        ];
+
+        // 반명을 입력하면 필터링하는 함수
+        function filterClasses() {
+            const input = document.getElementById('class_name').value;
+            const filteredClasses = classes.filter(cls => cls.includes(input));  // 입력값을 포함하는 반명만 필터링
+            displayClasses(filteredClasses);
+        }
+
+        // 필터링된 반명을 화면에 표시하는 함수
+        function displayClasses(classes) {
+            const listElement = document.getElementById('class-list');
+            listElement.innerHTML = '';  // 이전 검색 결과 지우기
+            classes.forEach(cls => {
+                const li = document.createElement('li');
+                li.textContent = cls;
+                li.onclick = function() {
+                    document.getElementById('class_name').value = cls;  // 선택된 반명을 입력란에 넣기
+                    listElement.innerHTML = '';  // 목록 숨기기
+                };
+                listElement.appendChild(li);
+            });
+        }
+
+        // 제출 여부에 따른 제출 마감일 필드 보이기/숨기기
+        document.getElementById('submission_status').addEventListener('change', function() {
+            var submissionStatus = this.value;
+            var dueDateField = document.getElementById('due_date_field');
+            if (submissionStatus === 'false') {
+                dueDateField.style.display = 'block';
+            } else {
+                dueDateField.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
