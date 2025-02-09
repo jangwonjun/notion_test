@@ -5,9 +5,9 @@ import requests
 import json
 from datetime import datetime, timezone
 from env import NOTION, S3 
+from subprocess import run
 
 app = Flask(__name__)
-
 
 NOTION_API_KEY = NOTION.API_KEY
 DATABASE_ID = NOTION.DB_ID
@@ -18,12 +18,10 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-
 AWS_ACCESS_KEY = S3.ACCESS_KEY
 AWS_SECRET_KEY = S3.SECRET_KEY
 S3_BUCKET_NAME = S3.NAME
 S3_REGION = S3.REGION  
-
 
 s3 = boto3.client(
     "s3",
@@ -44,14 +42,44 @@ def upload_to_s3(image):
         s3_url = f"https://{S3_BUCKET_NAME}.s3.{S3_REGION}.amazonaws.com/{filename}"
         print(f"Image uploaded to S3: {s3_url}")
         return s3_url
-    
+
     except Exception as e:
         print(f"S3 Upload Failed: {str(e)}")
         return None
 
 @app.route('/')
 def index():
+    """ 학생 페이지 렌더링 (과제 올리기) """
     return render_template('index.html')
+
+@app.route('/admin')
+def admin():
+    """ 관리자 페이지 렌더링 """
+    return render_template('main.html')
+
+@app.route('/run-care', methods=['POST'])
+def run_care():
+    try:
+
+        result = run(['python3', 'care.py'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return jsonify({"status": "success", "message": "전화번호 매칭 완료"})
+        else:
+            return jsonify({"status": "error", "message": f"care.py 오류: {result.stderr}"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"오류 발생: {str(e)}"})
+
+
+@app.route('/run-send', methods=['POST'])
+def run_send():
+    try:
+        result = run(['python3', 'send.py'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return jsonify({"status": "success", "message": "문자 전송 완료"})
+        else:
+            return jsonify({"status": "error", "message": f"send.py 오류: {result.stderr}"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"오류 발생: {str(e)}"})
 
 @app.route('/add_homework', methods=['POST'])
 def add_homework():
@@ -60,7 +88,6 @@ def add_homework():
     print("Received data:", data)
 
     upload_time = datetime.now(timezone.utc).isoformat()
-
 
     s3_urls = []
     for file in files:
@@ -79,7 +106,6 @@ def add_homework():
         "첨부 파일": s3_urls
     }
 
-
     url = "https://api.notion.com/v1/pages"
     properties = {
         "과제 제목": {"title": [{"text": {"content": homework_data["과제 제목"]}}]},
@@ -89,10 +115,8 @@ def add_homework():
         "업로드 시간": {"date": {"start": upload_time}}
     }
 
-
     if homework_data["제출 마감일"]:
         properties["제출 마감일"] = {"date": {"start": homework_data["제출 마감일"]}}
-
 
     if s3_urls:
         properties["첨부 파일"] = {
