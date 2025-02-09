@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, jsonify
 import requests
 import json
 from datetime import datetime, timezone
-from env import NOTION, S3 
+from env import NOTION, S3, FLASK_ENUM
 from subprocess import run
 
 app = Flask(__name__)
@@ -136,4 +136,4 @@ def add_homework():
         return jsonify({"status": "error", "message": response.text})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run('0.0.0.0', debug=True, port=FLASK_ENUM.PORT)
