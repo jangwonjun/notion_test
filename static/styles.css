@@ -5,14 +5,22 @@
     padding: 0;
 }
 
+@font-face {
+    font-family: 'yg-jalnan';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'yg-jalnan', Arial, sans-serif;
     background-color: #f7f7f7;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    padding: 20px;
 }
 
 .container {
@@ -41,13 +49,20 @@ h1 {
 
 .form-group input, .form-group select {
     width: 100%;
-    padding: 8px;
-    border-radius: 4px;
+    padding: 10px;
+    border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 14px;
+    transition: all 0.3s ease-in-out;
 }
 
-#course-list {
+.form-group input:focus, .form-group select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+#class-list {
     list-style-type: none;
     padding: 0;
     margin: 5px 0;
@@ -55,26 +70,29 @@ h1 {
     border: 1px solid #ccc;
     max-height: 150px;
     overflow-y: auto;
+    border-radius: 4px;
 }
 
-#course-list li {
-    padding: 8px;
+#class-list li {
+    padding: 10px;
     cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
 }
 
-#course-list li:hover {
+#class-list li:hover {
     background-color: #f0f0f0;
 }
 
 button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 16px;
     cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
 }
 
 button:hover {
@@ -83,4 +101,5 @@ button:hover {
 
 button:focus {
     outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
 }

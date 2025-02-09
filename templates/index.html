@@ -5,75 +5,250 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>과제 제출</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        ul li {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        ul li:hover {
+            background: #f1f1f1;
+        }
+
+        #due_date_field {
+            display: none;
+        }
+
+        /* 진행 바 스타일 */
+        #progressContainer {
+            margin-top: 20px;
+            text-align: center;
+            display: none; /* 기본적으로 숨겨놓음 */
+        }
+
+        progress {
+            width: 100%;
+            height: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            appearance: none;
+        }
+
+        progress::-webkit-progress-bar {
+            background-color: #e0e0e0;
+            border-radius: 10px;
+        }
+
+        progress::-webkit-progress-value {
+            background-color: #007bff;
+            border-radius: 10px;
+        }
+
+        /* 하단 정보 영역 */
+        .footer {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+    </style>
 </head>
 <body>
-    <h1>스마트 과제 제출</h1>
-    <form action="/add_homework" method="POST" enctype="multipart/form-data">
-        <label for="homework_title">과제 제목:</label>
-        <input type="text" id="homework_title" name="homework_title" required><br><br>
-        
-        <label for="class_name">반명:</label>
-        <input type="text" id="class_name" name="class_name" autocomplete="off" placeholder="반명을 입력하세요..." oninput="filterClasses()">
-        <ul id="class-list"></ul><br><br>
-        
-        <label for="student_name">학생 이름:</label>
-        <input type="text" id="student_name" name="student_name" required><br><br>
-        
-        <label for="submission_status">제출 여부:</label>
-        <select id="submission_status" name="submission_status" required>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-        </select><br><br>
 
-        <div id="due_date_field" style="display: none;">
-            <label for="due_date">제출 마감일:</label>
-            <input type="date" id="due_date" name="due_date"><br><br>
+    <div class="container">
+        <h1>스마트 과제 제출</h1>
+        <form id="uploadForm" action="/add_homework" method="POST" enctype="multipart/form-data">
+            <label for="homework_title">과제 제목:</label>
+            <input type="text" id="homework_title" name="homework_title" required>
+            
+            <label for="class_name">반명:</label>
+            <input type="text" id="class_name" name="class_name" autocomplete="off" placeholder="반명을 입력하세요..." oninput="filterClasses()">
+            <ul id="class-list"></ul>
+            
+            <label for="student_name">학생 이름:</label>
+            <input type="text" id="student_name" name="student_name" required>
+            
+            <label for="submission_status">제출 여부:</label>
+            <select id="submission_status" name="submission_status" required>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+
+            <div id="due_date_field">
+                <label for="due_date">제출 마감일:</label>
+                <input type="date" id="due_date" name="due_date">
+            </div>
+
+            <label for="attachment">첨부 파일:</label>
+            <input type="file" id="attachment" name="attachment" multiple>
+
+            <button type="submit">제출</button>
+        </form>
+
+        <!-- 파일 업로드 진행 바 -->
+        <div id="progressContainer">
+            <progress id="progressBar" value="0" max="100"></progress>
+            <span id="progressText">0%</span>
         </div>
+    </div>
 
-        <label for="attachments">첨부 파일:</label>
-        <input type="file" id="attachments" name="attachments" multiple><br><br>
-
-        <button type="submit">제출</button>
-    </form>
+    <!-- 하단 정보 영역 -->
+    <div class="footer">
+        <p>제작사 : ActiveJang</p>
+        <p>문의 : <a href="mailto:admin@activejang.com">admin@activejang.com</a></p>
+        <p>호스팅 : AWS S3 | ITEASY</p>
+    </div>
 
     <script>
-        // 미리 정의된 반명 목록 (예시)
-        const classes = [
-            "중3S", "고1M", "고2A", "중2B", "고3S", "중1A"
-        ];
+        const classes = ["중3S", "고1M", "고2A", "중2B", "고3S", "중1A"];
 
-        // 반명을 입력하면 필터링하는 함수
         function filterClasses() {
             const input = document.getElementById('class_name').value;
-            const filteredClasses = classes.filter(cls => cls.includes(input));  // 입력값을 포함하는 반명만 필터링
+            const filteredClasses = classes.filter(cls => cls.includes(input));
             displayClasses(filteredClasses);
         }
 
-        // 필터링된 반명을 화면에 표시하는 함수
         function displayClasses(classes) {
             const listElement = document.getElementById('class-list');
-            listElement.innerHTML = '';  // 이전 검색 결과 지우기
+            listElement.innerHTML = '';
             classes.forEach(cls => {
                 const li = document.createElement('li');
                 li.textContent = cls;
                 li.onclick = function() {
-                    document.getElementById('class_name').value = cls;  // 선택된 반명을 입력란에 넣기
-                    listElement.innerHTML = '';  // 목록 숨기기
+                    document.getElementById('class_name').value = cls;
+                    listElement.innerHTML = '';
                 };
                 listElement.appendChild(li);
             });
         }
 
-        // 제출 여부에 따른 제출 마감일 필드 보이기/숨기기
         document.getElementById('submission_status').addEventListener('change', function() {
-            var submissionStatus = this.value;
             var dueDateField = document.getElementById('due_date_field');
-            if (submissionStatus === 'false') {
-                dueDateField.style.display = 'block';
-            } else {
-                dueDateField.style.display = 'none';
-            }
+            dueDateField.style.display = this.value === 'false' ? 'block' : 'none';
+        });
+
+        // 진행 바 업데이트 함수
+        const form = document.getElementById('uploadForm');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // 진행 바 표시
+            progressContainer.style.display = 'block';
+
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(event) {
+                if (event.lengthComputable) {
+                    const percent = (event.loaded / event.total) * 100;
+                    progressBar.value = percent;
+                    progressText.textContent = `${Math.round(percent)}%`;
+                }
+            });
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert("파일 업로드 완료!");
+                } else {
+                    alert("파일 업로드 실패!");
+                }
+                progressContainer.style.display = 'none'; // 완료 후 진행 바 숨기기
+            };
+
+            xhr.open('POST', '/add_homework', true);
+            xhr.send(formData);
         });
     </script>
+
 </body>
 </html>

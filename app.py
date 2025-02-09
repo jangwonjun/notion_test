@@ -1,13 +1,14 @@
 import os
+import boto3  
 from flask import Flask, request, render_template, jsonify
 import requests
 import json
 from datetime import datetime, timezone
-from env import NOTION
+from env import NOTION, S3 
 
 app = Flask(__name__)
 
-# Notion API 설정
+
 NOTION_API_KEY = NOTION.API_KEY
 DATABASE_ID = NOTION.DB_ID
 
@@ -17,54 +18,86 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
+
+AWS_ACCESS_KEY = S3.ACCESS_KEY
+AWS_SECRET_KEY = S3.SECRET_KEY
+S3_BUCKET_NAME = S3.NAME
+S3_REGION = S3.REGION  
+
+
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY,
+    region_name=S3_REGION
+)
+
+def upload_to_s3(image):
+    """ S3에 이미지를 업로드하고 URL을 반환하는 함수 """
+    filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{image.filename}"  # 파일명 변경 (타임스탬프 추가)
+    
+    try:
+        # S3에 파일 업로드
+        s3.upload_fileobj(image, S3_BUCKET_NAME, filename)  
+        
+        # S3 URL 생성
+        s3_url = f"https://{S3_BUCKET_NAME}.s3.{S3_REGION}.amazonaws.com/{filename}"
+        print(f"Image uploaded to S3: {s3_url}")
+        return s3_url
+    
+    except Exception as e:
+        print(f"S3 Upload Failed: {str(e)}")
+        return None
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/add_homework', methods=['POST'])
 def add_homework():
-    # HTML에서 보내는 데이터를 받음
     data = request.form
+    files = request.files.getlist("attachment")
     print("Received data:", data)
-    
-    # 시스템 시간으로 업로드 시간 자동 처리 (timezone-aware UTC datetime 사용)
-    upload_time = datetime.now(timezone.utc).isoformat()  # UTC 기준으로 현재 시간
+
+    upload_time = datetime.now(timezone.utc).isoformat()
+
+
+    s3_urls = []
+    for file in files:
+        s3_url = upload_to_s3(file)
+        if s3_url:
+            s3_urls.append({"name": file.filename, "url": s3_url})
 
     # 과제 데이터 처리
     homework_data = {
-        "과제 제목": data["homework_title"],
-        "학생 이름": data["student_name"],
-        "반명": data["class_name"],  # 반명 추가
-        "제출 여부": data["submission_status"] == 'true',
-        # 제출 여부가 Yes일 경우 마감일은 None으로 처리
-        "제출 마감일": data["due_date"] if data["submission_status"] == 'false' and data["due_date"] else None,
+        "과제 제목": data.get("homework_title", ""),
+        "학생 이름": data.get("student_name", ""),
+        "반명": data.get("class_name", ""),  
+        "제출 여부": data.get("submission_status") == 'true',
+        "제출 마감일": data.get("due_date") if data.get("submission_status") == 'false' and data.get("due_date") else None,
         "업로드 시간": upload_time,
-        "첨부 파일": []  # 첨부파일을 처리하지 않음
+        "첨부 파일": s3_urls
     }
 
-    # Notion API를 통해 데이터 추가
-    url = f"https://api.notion.com/v1/pages"
+
+    url = "https://api.notion.com/v1/pages"
     properties = {
-        "과제 제목": {
-            "title": [
-                {"text": {"content": homework_data["과제 제목"]}}
-            ]
-        },
-        "학생 이름": {
-            "rich_text": [{"text": {"content": homework_data["학생 이름"]}}]
-        },
-        "반명": {
-            "rich_text": [{"text": {"content": homework_data["반명"]}}]  # 반명 필드 추가
-        },
+        "과제 제목": {"title": [{"text": {"content": homework_data["과제 제목"]}}]},
+        "학생 이름": {"rich_text": [{"text": {"content": homework_data["학생 이름"]}}]},
+        "반명": {"rich_text": [{"text": {"content": homework_data["반명"]}}]},
         "제출 여부": {"checkbox": homework_data["제출 여부"]},
-        # 제출 마감일이 None이면 해당 필드 아예 제거
-        "제출 마감일": {"date": {"start": homework_data["제출 마감일"]}} if homework_data["제출 마감일"] else {},
-        "업로드 시간": {"date": {"start": upload_time}},
-        "첨부 파일": {"files": []}  # 첨부파일 필드에 빈 리스트
+        "업로드 시간": {"date": {"start": upload_time}}
     }
 
-    # 빈 필드는 아예 제외하거나 적절하게 처리합니다
-    properties = {key: value for key, value in properties.items() if value}
+
+    if homework_data["제출 마감일"]:
+        properties["제출 마감일"] = {"date": {"start": homework_data["제출 마감일"]}}
+
+
+    if s3_urls:
+        properties["첨부 파일"] = {
+            "files": [{"name": img["name"], "external": {"url": img["url"]}} for img in s3_urls]
+        }
 
     payload = {
         "parent": {"database_id": DATABASE_ID},
