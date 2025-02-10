@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시간표</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        table {
+            width: 80%;
+            margin: 50px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>시간표</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>수업명</th>
+                <th>수업시간</th>
+                <th>요일</th>
+                <th>선생님</th>
+            </tr>
+        </thead>
+        <tbody>
+
+
+           {% for entry in timetable %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('class_detail', class_name=entry['수업명']) }}">
+                        {{ entry['수업명'] }}
+                    </a>
+                </td>
+                <td>{{ entry['수업시간'] }}</td>
+                <td>{{ entry['요일'] }}</td>
+                <td>{{ entry['선생님'] }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+</body>
+</html>

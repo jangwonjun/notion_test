@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ class_name }} 반의 숙제 제출 현황</title>
+</head>
+<body>
+    <h1>{{ class_name }} 반의 숙제 제출 현황</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>학생 이름</th>
+                <th>숙제 제출 여부</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
