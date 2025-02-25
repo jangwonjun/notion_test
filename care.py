@@ -88,4 +88,3 @@ update_notion_phone_numbers(student_dict, notion_students)  # 전화번호 업�
 print("📌 노션 데이터 업데이트 완료!")
 
 
-print("📌 노션 데이터 업데이트 완료!")

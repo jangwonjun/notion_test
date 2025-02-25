@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시간표</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+        .header h1 {
+            flex-grow: 1;
+            text-align: center;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-send {
+            background-color: #007bff;
+        }
+        .btn-add {
+            background-color: #28a745;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>시간표</h1>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>수업명</th>
+                    <th>시간</th>
+                    <th>요일</th>
+                    <th>담당선생님</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in timetable %}
+                <tr>
+                    <td>{{ row['class_name'] }}</td>
+                    <td>{{ row['start_time'] }}</td>
+                    <td>{{ row['day'] }}</td>
+                    <td>{{ row['teacher'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

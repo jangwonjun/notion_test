@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask 로딩 화면</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* 로딩 화면 스타일 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+
+        /* 부드러운 회전 애니메이션 */
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3498db;
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 부드러운 로딩 텍스트 애니메이션 */
+        .loading-text {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #333;
+            animation: fade 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fade {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Flask + AJAX 로딩 화면</h1>
+    <button onclick="startProcess()">처리 시작</button>
+    <p id="result"></p>
+
+    <!-- 로딩 화면 -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <p class="loading-text">처리 중입니다...</p>
+    </div>
+
+    <script>
+        function startProcess() {
+            $("#loading").fadeIn(300);  // 부드럽게 로딩 화면 표시
+
+            $.get('/process', function(data) {
+                $("#loading").fadeOut(300);  // 부드럽게 로딩 화면 숨김
+                $("#result").text(data.message);
+            });
+        }
+    </script>
+
+</body>
+</html>

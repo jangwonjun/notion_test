@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>시간표</title>
+    <title>QED 학원 시간표</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,9 +71,45 @@
 <body>
     <div class="container">
         <div class="header">
-            <button class="btn btn-send" onclick="location.href='/send_message'">문자 전송하기</button>
-            <h1>시간표</h1>
-            <button class="btn btn-add" onclick="location.href='/add_timetable'">시간표 추가</button>
+            <button class="btn btn-send" id="sendButton">데일리 관리표 전송</button>
+
+            <script>
+                document.getElementById('sendButton').addEventListener('click', async function() {
+                    // 버튼 클릭 시 수행할 작업
+                    alert('데일리 관리표를 전송합니다 (Notion 데일리 관리표에 작성된 부분이 전송됩니다.)');
+                
+                    try {
+                        const response = await fetch('/run-care-and-send', {  // 서버 URL 변경
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                message: '데일리 관리표를 전송합니다', // 필요한 데이터를 JSON 형식으로 보낼 수 있음
+                            }),
+                        });
+                
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            alert('데일리 관리표 전송 완료');
+                        } else {
+                            alert('에러 발생: ' + data.message);
+                        }
+                    } catch (error) {
+                        alert('서버와의 연결에 실패했습니다.');
+                    }
+                });
+            </script>
+            
+            <h1>QED 학원 시간표</h1>
+            <button class="btn btn-add" id="uploadButton">시간표 업로드</button>
+
+            <script>
+                // 시간표 업로드 버튼 클릭 시 /upload-timetable 라우터로 이동
+                document.getElementById('uploadButton').addEventListener('click', function() {
+                    window.location.href = '/upload-timetable'; // 원하는 URL로 리디렉션
+                });
+            </script>
         </div>
 
         <table>
@@ -89,13 +125,13 @@
                 {% for entry in timetable %}
                 <tr>
                     <td>
-                        <a href="{{ url_for('class_detail', class_name=entry['수업명']) }}">
-                            {{ entry['수업명'] }}
+                        <a href="{{ url_for('class_detail', class_name=entry['class_name']) }}">
+                            {{ entry['class_name'] }}
                         </a>
                     </td>
-                    <td>{{ entry['수업시간'] }}</td>
-                    <td>{{ entry['요일'] }}</td>
-                    <td>{{ entry['선생님'] }}</td>
+                    <td>{{ entry['start_time'] }}</td>
+                    <td>{{ entry['day'] }}</td>
+                    <td>{{ entry['teacher'] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

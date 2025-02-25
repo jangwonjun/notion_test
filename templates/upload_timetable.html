@@ -1,0 +1,86 @@
+<div class="container">
+    <h1>시간표 업로드</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="file" class="file-label">엑셀 파일 선택:</label>
+        <input type="file" id="file" name="file" accept=".xlsx" required class="file-input"><br><br>
+        <button type="submit" class="btn btn-upload">시간표 업로드</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+        event.preventDefault();  // 기본 제출 동작 방지
+
+        const formData = new FormData();
+        const file = document.getElementById('file').files[0];
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/upload-timetable', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.href = '/view_timetable';  // 시간표 보기 페이지로 리디렉션
+            } else {
+                alert('에러 발생: ' + data.message);
+            }
+        } catch (error) {
+            alert('서버와의 연결에 실패했습니다.');
+        }
+    });
+</script>
+
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+    }
+    .container {
+        width: 70%;
+        margin: 0 auto;
+        padding: 40px 0;
+        text-align: center;
+    }
+    h1 {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    .file-label {
+        font-size: 16px;
+        margin-right: 10px;
+        color: #333;
+    }
+    .file-input {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 60%;
+        margin-bottom: 20px;
+    }
+    .btn {
+        padding: 12px 25px;
+        font-size: 16px;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 60%;
+        margin-top: 20px;
+        transition: background-color 0.3s;
+    }
+    .btn-upload {
+        background-color: #007bff;
+    }
+    .btn-upload:hover {
+        background-color: #0056b3;
+    }
+</style>
