@@ -201,8 +201,7 @@ def load_timetable_from_db_for_view():
     return timetable_data
 
 def send_homework_reminder():
-    """숙제를 제출하지 않은 학생들에게 문자 전송"""
-    #노션에 제출조차 안한 학생들의 경우 어떻게 처리할지 고민 -> 학생이름 검색후 보내는걸로! 해결예정.
+    """숙제를 제출하지 않은 학생들에게 문자 전송""" #전체 학생에 해당
 
     """숙제를 제출하지 않은 학생들에게 문자 전송"""
     homework_status = get_homework_status()  # 노션에서 제출한 학생들 조회
@@ -338,6 +337,56 @@ def time_table():
 
     # 템플릿에 데이터 전달
     return render_template('table.html', timetable=timetable)
+
+#개별문자
+@app.route('/class/<class_name>/send-homework-reminder/', methods=['POST'])
+def send_homework_reminder(class_name):
+    """숙제를 제출하지 않은 학생들에게 문자 전송"""
+    homework_status = get_homework_status()  # 노션에서 제출한 학생들 조회
+    print("📌 숙제 상태 데이터:", homework_status)  # ✅ 노션 데이터 확인
+    print(class_name)
+    # 특정 반에 해당하는 학생들만 필터링
+    students = get_students()  # DB에서 전체반 학생들만 가져오기
+    print("📌 해당 반 학생 목록:", students)  # ✅ DB 데이터 확인
+
+    filtered_students = [s for s in students if s['class'] == class_name]
+    print(f"📌 {class_name} 반 학생 목록:", filtered_students)
+
+    message_sent = []
+    for student in filtered_students:
+        student_tuple = (student['class'], student['name'])
+
+        print(f"🔍 체크 중: {student_tuple}")  # ✅ 현재 비교하는 학생 정보
+        print(f"📌 해당 학생의 숙제 상태: {homework_status.get(student_tuple)}")  # ✅ 현재 상태 확인
+
+        if homework_status.get(student_tuple, "") != "✔":  # ✅ 기본값 추가
+            phone_number = get_student_phone_number(student['name'], student['class'])
+            print(f"📌 핸드폰 번호 ({student['name']}):", phone_number)
+
+            if phone_number:
+                message_text = create_homework_reminder_message(student)
+                data = {
+                    'messages': [
+                        {
+                            'to': phone_number,
+                            'from': SEND.SENDNUMBER,
+                            'subject': '숙제 미제출 안내',
+                            'text': message_text
+                        }
+                    ]
+                }
+                res = message.send_many(data)
+                print(f"{student['name']}에게 숙제 미제출 알림을 전송했습니다.")
+                print(json.dumps(json.loads(res.text), indent=2, ensure_ascii=False))
+                message_sent.append(student['name'])
+
+            message_sent = [name for name in message_sent if name is not None]
+
+    return render_template(
+        'homework_reminder_result.html',
+        class_name=class_name,
+        message_sent=message_sent
+    )
 
 
 @app.route("/class/<class_name>")

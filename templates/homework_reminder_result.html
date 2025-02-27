@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ class_name }} 숙제 미제출 알림</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 2rem auto;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 0.5rem 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        a {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ class_name }} 반 숙제 미제출 알림 결과</h1>
+        <h2>문자 전송 완료 학생:</h2>
+        <ul>
+            {% if message_sent %}
+                {% for student in message_sent %}
+                    <li>{{ student }}</li>
+                {% endfor %}
+            {% else %}
+                <li>숙제를 제출하지 않은 학생이 없습니다.</li>
+            {% endif %}
+        </ul>
+        <a href="/class/{{ class_name }}">홈으로</a>
+    </div>
+</body>
+</html>
