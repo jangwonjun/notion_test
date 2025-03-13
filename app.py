@@ -1,10 +1,10 @@
 import os
 import boto3  
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify, redirect, url_for, session
 import requests
 import json
 from datetime import datetime, timezone
-from env import NOTION, S3, FLASK_ENUM, SQL, SEND
+from env import NOTION, S3, FLASK_ENUM, SQL, SEND, KEY, USER
 import pymysql
 from subprocess import run
 from timetable import load_timetable
@@ -15,6 +15,7 @@ import pandas as pd
 
 
 app = Flask(__name__)
+app.secret_key = KEY.SECRET_KEY
 
 NOTION_API_KEY = NOTION.API_KEY
 DATABASE_ID = NOTION.DB_ID
@@ -330,13 +331,146 @@ def index():
 def admin():
     """ 관리자 페이지 렌더링 """
     return render_template('main.html')
-
+#메인
 @app.route('/time_table')
 def time_table():
     timetable = load_timetable_from_db() 
+    if 'user' not in session:
+        return redirect(url_for('login'))  # 로그인 안 되어 있으면 로그인 페이지로 이동
+    return render_template('table.html', user=session.get('user'),timetable=timetable)  # 로그인된 사용자에게만 보이게
 
-    # 템플릿에 데이터 전달
-    return render_template('table.html', timetable=timetable)
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username == USER.ID and password == USER.PASSWORD:
+            session['user'] = username  # 로그인 성공 시 세션 저장
+            return redirect(url_for('time_table'))  # 로그인 후 /time_table로 이동
+        else:
+            return render_template('login.html', error="잘못된 로그인 정보입니다.")
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)  # 세션에서 사용자 정보 제거
+    return redirect(url_for('login'))  # 로그인으로 이동
+
+
+#원생조회
+@app.route('/view-students', methods=['GET'])
+def view_students():
+    """sdb_student 데이터베이스의 모든 칼럼을 조회하고 화면에 표시"""
+    # DB 연결
+    connection = pymysql.connect(
+        host=SQL.HOST,
+        user=SQL.ID,
+        password=SQL.PASSWORD,
+        port=SQL.PORT,
+        database=SQL.DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    cursor = connection.cursor()
+
+    # 테이블의 모든 컬럼 조회
+    cursor.execute("SELECT * FROM sdb_students")  # 테이블 이름을 맞게 수정
+    students_data = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    # 조회된 데이터를 HTML 페이지에서 출력
+    return render_template('view_students.html', students=students_data)
+
+# 학생 추가
+@app.route('/add-student', methods=['GET', 'POST'])
+def add_student():
+    """학생 정보를 입력받아 DB에 추가"""
+    if request.method == 'POST':
+        student_class = request.form['class']
+        name = request.form['name']
+        grade = request.form['grade']
+        age = request.form['age']
+        birth = request.form['birth']
+        teacher = request.form['teacher']
+        school = request.form['school']
+        student_phone = request.form['student_phone']
+        parent_phone = request.form['parent_phone']
+        gender = request.form['gender']
+
+        connection = pymysql.connect(
+            host=SQL.HOST,
+            user=SQL.ID,
+            password=SQL.PASSWORD,
+            port=SQL.PORT,
+            database=SQL.DB_NAME,
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO sdb_students (class, name, grade, age, birth, school, teacher, student_phone, parent_phone, gender)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (student_class, name, grade, age, birth, school, teacher, student_phone, parent_phone, gender)
+        )
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect(url_for('view_students'))
+
+    return render_template('add_student.html')
+
+# 학생 삭제
+@app.route('/delete-student', methods=['POST'])
+def delete_student():
+    """입력된 학생 이름을 기준으로 DB에서 삭제"""
+    student_name = request.form['student_name']
+
+    connection = pymysql.connect(
+        host=SQL.HOST,
+        user=SQL.ID,
+        password=SQL.PASSWORD,
+        port=SQL.PORT,
+        database=SQL.DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("DELETE FROM sdb_students WHERE name = %s", (student_name,))
+        connection.commit()
+        message = f"{student_name} 학생이 성공적으로 삭제되었습니다."
+    except Exception as e:
+        connection.rollback()
+        message = f"학생 삭제 중 오류가 발생했습니다: {str(e)}"
+    finally:
+        cursor.close()
+        connection.close()
+
+    # 학생 목록을 조회하여 전달
+    connection = pymysql.connect(
+        host=SQL.HOST,
+        user=SQL.ID,
+        password=SQL.PASSWORD,
+        port=SQL.PORT,
+        database=SQL.DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM sdb_students")
+    students_data = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    # 학생 삭제 페이지로 리다이렉트하며 메시지 전달
+    return render_template('delete_student.html', message=message, students=students_data)
 
 #개별문자
 @app.route('/class/<class_name>/send-homework-reminder/', methods=['POST'])

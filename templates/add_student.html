@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원생 추가</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .footer {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 5px 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+<body>
+
+
+
+    <div class="form-container">
+
+        <h2>원생 추가</h2>
+        
+        <form action="{{ url_for('add_student') }}" method="POST">
+            <div class="input-group">
+                <label for="name">이름:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="input-group">
+                <label for="class">반:</label>
+                <input type="text" id="class" name="class" required>
+            </div>
+            <div class="input-group">
+                <label for="grade">학년:</label>
+                <input type="text" id="grade" name="grade" required>
+            </div>
+            <div class="input-group">
+                <label for="age">나이:</label>
+                <input type="text" id="age" name="age" required>
+            </div>
+            <div class="input-group">
+                <label for="school">학교:</label>
+                <input type="text" id="school" name="school" required>
+            </div>
+            <div class="input-group">
+                <label for="birth">생년월일:</label>
+                <input type="date" id="birth" name="birth" required>
+            </div>
+            <div class="input-group">
+                <label for="teacher">담임:</label>
+                <input type="text" id="teacher" name="teacher" required>
+            </div>
+            <div class="input-group">
+                <label for="student_phone">학생 전화번호:</label>
+                <input type="text" id="student_phone" name="student_phone" required>
+            </div>
+            <div class="input-group">
+                <label for="parent_phone">부모님 전화번호:</label>
+                <input type="text" id="parent_phone" name="parent_phone" required>
+            </div>
+            <div class="input-group">
+                <label for="gender">성별:</label>
+                <select id="gender" name="gender" required>
+                    <option value="M">남자</option>
+                    <option value="F">여자</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">추가</button>
+        </form>
+    </div>
+</body>
+</html>

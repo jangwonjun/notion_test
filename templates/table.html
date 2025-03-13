@@ -11,9 +11,36 @@
             padding: 0;
             background-color: #f4f4f9;
         }
-        .container {
+        .navbar {
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .nav-container {
             width: 80%;
             margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+            padding: 10px 15px;
+            transition: color 0.3s ease-in-out;
+        }
+        .nav-links a:hover {
+            color: #007bff;
+        }
+        .container {
+            width: 80%;
+            margin: 80px auto 0; /* 네비게이션 바 높이만큼 아래로 이동 */
             text-align: center;
         }
         .header {
@@ -66,26 +93,208 @@
         tr:hover {
             background-color: #f1f1f1;
         }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 5px 0; /* 기존 15px → 5px 줄여서 네비게이션 높이 조절 */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            height: 60px; /* 로고 크기에 맞춰 네비게이션 높이 고정 */
+            display: flex;
+            align-items: center; /* 로고와 메뉴를 수직 정렬 */
+        }
+
+        .nav-container {
+            width: 80%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+            padding: 10px 15px;
+            transition: color 0.3s ease-in-out;
+            font-size: 16px; /* 가독성을 유지하면서 균형 맞추기 */
+        }
+
+        .nav-links a:hover {
+            color: #007bff;
+        }
+
+        /* 로고 크기 조정 */
+        .logo {
+            height: 48px; /* 로고 높이 맞춤 */
+            width: auto; /* 가로 비율 유지 */
+        }
+
+        .user-info {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .welcome-message {
+            font-weight: bold;
+            color: #0400ff;
+            margin-right: 5px; /* 버튼과의 간격을 최소한으로 설정 */
+        }
+
+        .btn-logout {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background-color: #c82333;
+        }
+
+        /* 드롭다운 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: white;
+            border: none;
+            font-weight: bold;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index: 1000;
+            border-radius: 5px;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* 드롭다운 버튼 클릭 시 */
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+
+
+
     </style>
 </head>
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const dropdowns = document.querySelectorAll(".dropdown");
+
+                dropdowns.forEach((dropdown) => {
+                    const button = dropdown.querySelector(".dropbtn");
+
+                    button.addEventListener("click", function (event) {
+                        event.stopPropagation(); // 클릭 이벤트가 상위로 전파되지 않도록 방지
+                        closeAllDropdowns(); // 다른 드롭다운 닫기
+                        dropdown.classList.toggle("active");
+                    });
+                });
+
+                // 다른 곳을 클릭하면 드롭다운 닫기
+                document.addEventListener("click", closeAllDropdowns);
+
+                function closeAllDropdowns() {
+                    dropdowns.forEach((dropdown) => {
+                        dropdown.classList.remove("active");
+                    });
+                }
+            });
+        </script>
 <body>
+
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <a href="/">
+            <img src="/static/qed_logo.png" alt="QED 로고" class="logo">
+        </a>
+
+        <div class="nav-container">
+            <div class="nav-container">
+                <div class="nav-links">
+                    <!-- 시간표 (드롭다운) -->
+                    <div class="dropdown">
+                        <button class="dropbtn">시간표</button>
+                        <div class="dropdown-content">
+                            <a href="/time_table">시간표 조회</a>
+                            <a href="/upload-timetable">시간표 수정</a>
+                        </div>
+                    </div>
+        
+                    <!-- 원생 관리 (드롭다운) -->
+                    <div class="dropdown">
+                        <button class="dropbtn">원생 관리</button>
+                        <div class="dropdown-content">
+                            <a href="/view-students">원생 조회</a>
+                            <a href="/add-student">원생 추가</a>
+                        </div>
+                    </div>
+        
+                    <!-- 일반 링크 -->
+                    <a href="https://www.notion.so/1b34439fd7d580cfa9d2f855b998cf8b" target="_blank">관리표 전송</a>
+                    <a href="https://www.notion.so/1924439fd7d58033b3e9fad585b6a6c9?v=1924439fd7d580818f6c000c4bb61e37" target="_blank">과제 조회</a>
+                    <a href="/homework">스케줄러 관리</a>
+                    <a href="/guide">사용가이드 바로가기</a>
+                </div>
+        
+                {% if user %}
+                <div class="user-info">
+                    <span class="welcome-message">큐이디학원님 E2G 방문을 환영합니다!</span>
+                    <a href="/logout" class="btn-logout">로그아웃</a>
+                </div>
+                {% endif %}
+            </div>
+        </nav>
+
     <div class="container">
         <div class="header">
             <button class="btn btn-send" id="sendButton">데일리 관리표 전송</button>
 
             <script>
                 document.getElementById('sendButton').addEventListener('click', async function() {
-                    // 버튼 클릭 시 수행할 작업
                     alert('데일리 관리표를 전송합니다 (Notion 데일리 관리표에 작성된 부분이 전송됩니다.)');
                 
                     try {
-                        const response = await fetch('/run-care-and-send', {  // 서버 URL 변경
+                        const response = await fetch('/run-care-and-send', {  
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                message: '데일리 관리표를 전송합니다', // 필요한 데이터를 JSON 형식으로 보낼 수 있음
+                                message: '데일리 관리표를 전송합니다',
                             }),
                         });
                 
@@ -105,9 +314,8 @@
             <button class="btn btn-add" id="uploadButton">시간표 업로드</button>
 
             <script>
-                // 시간표 업로드 버튼 클릭 시 /upload-timetable 라우터로 이동
                 document.getElementById('uploadButton').addEventListener('click', function() {
-                    window.location.href = '/upload-timetable'; // 원하는 URL로 리디렉션
+                    window.location.href = '/upload-timetable';
                 });
             </script>
         </div>
@@ -137,5 +345,85 @@
             </tbody>
         </table>
     </div>
+
+   
+</div>
+
+<style>
+    /* 화면 전체를 감싸는 래퍼 */
+    .wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh; /* 최소 높이를 화면 높이로 설정 */
+    }
+
+    .container {
+        flex: 1; /* 남은 공간을 차지하게 설정 */
+        width: 80%;
+        margin: 80px auto 0; /* 네비게이션 바 높이만큼 아래로 이동 */
+        text-align: center;
+    }
+
+    /* 푸터 스타일 */
+    .footer {
+        background-color: #343a40;
+        color: white;
+        padding: 20px 0;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-content {
+        width: 80%;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        font-weight: normal;
+        font-size: 14px;
+    }
+
+    .left, .right {
+        display: inline-block;
+        text-align: left;
+    }
+
+    .footer-item {
+        margin: 5px 0;
+    }
+
+    .footer-title {
+        font-weight: bold;
+        color: #f8f9fa; /* 푸터 제목 색상 */
+    }
+
+    .footer a {
+        color: #f8f9fa;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer a:hover {
+        color: #ffcd00; /* 강조된 링크 색상 */
+    }
+
+    /* 작은 화면에서의 배치 변경 */
+    @media (max-width: 768px) {
+        .footer-content {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .footer-item {
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        .left, .right {
+            text-align: center;
+        }
+    }
+</style>
+
 </body>
 </html>
