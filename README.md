@@ -18,9 +18,9 @@ https://github.com/user-attachments/assets/3e32cbfe-f7ce-425e-8065-d6b5b2cff9a5
 | PUT | `/add-student`  | DB에 원생을 등록하는 기능입니다.                   |
 | POST, GET    | `/delete-student`  | DB에 원생을 삭제하는 기능입니다. |
 | POST   | `/class/<class_name>/send-homework-reminder/`  | 숙제를 제출하지 않은 학생들에게 알림톡을 전송하는 기능입니다.      |
-| PUT    | `/class/<class_name>"`  | 수업 상세 정보 및 숙제 제출 현황 페이지입니다.             |
+| PUT    | `/class/<class_name>`  | 수업 상세 정보 및 숙제 제출 현황 페이지입니다.             |
 | PUT | `/class-detail`  | 학생 목록과 Notion에서 숙제 제출 여부 가져오는 기능입니다.                 |
-| POST, GET    | `/add_homework'`  | 스마트 과제 업로드 기능입니다. |
+| POST, GET    | `/add_homework`  | 스마트 과제 업로드 기능입니다. |
 
 
 
