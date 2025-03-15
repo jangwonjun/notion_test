@@ -154,6 +154,9 @@
             <label for="student_name">학생 이름:</label>
             <input type="text" id="student_name" name="student_name" required>
             
+            <label for="student_phone">전화번호:</label>
+            <input type="text" id="student_phone" name="student_phone" placeholder="010-xxxx-xxxx" required oninput="formatPhoneNumber(this)">
+
             <label for="submission_status">제출 여부:</label>
             <select id="submission_status" name="submission_status" required>
                 <option value="true">Yes</option>
@@ -184,6 +187,19 @@
     </div>
 
     <script>
+        // 전화번호 포맷팅 함수
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/\D/g, ''); // 숫자만 추출
+            if (value.length <= 3) {
+                input.value = value;
+            } else if (value.length <= 6) {
+                input.value = value.replace(/(\d{3})(\d{1,4})/, '$1-$2');
+            } else {
+                input.value = value.replace(/(\d{3})(\d{1,4})(\d{1,4})/, '$1-$2-$3');
+            }
+        }
+
+        // 필터링 함수 (반명 필터링)
         const classes = ["중3S", "고1M", "고2A", "중2B", "고3S", "중1A"];
 
         function filterClasses() {

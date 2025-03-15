@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, jsonify, redirect, url_for, s
 import requests
 import json
 from datetime import datetime, timezone
-from env import NOTION, S3, FLASK_ENUM, SQL, SEND, KEY, USER
+from env import NOTION, S3, FLASK_ENUM, SQL, SEND, KEY, USER, KAKAO
 import pymysql
 from subprocess import run
 from timetable import load_timetable
@@ -228,8 +228,15 @@ def send_homework_reminder():
                         {
                             'to': phone_number,
                             'from': SEND.SENDNUMBER,
-                            'subject': '숙제 미제출 안내',
-                            'text': message_text
+                            'kakaoOptions': {
+                                'pfId': KAKAO.PF_ID,
+                                'templateId': '202503131354',
+                                # 변수: 값 형식으로 모든 변수에 대한 변수값 입력
+                                'variables': {
+                                    '#{01학생명}': student['name']
+                                }
+                }
+                          
                         }
                     ]
                 }
@@ -472,6 +479,13 @@ def delete_student():
     # 학생 삭제 페이지로 리다이렉트하며 메시지 전달
     return render_template('delete_student.html', message=message, students=students_data)
 
+
+def format_phone_number(phone_number):
+    # 전화번호가 10자리일 경우 '010-'을 붙이고, 뒤에 하이픈 구분을 추가
+    phone_number = '01' + phone_number[0][1:]  # '010' 추가
+    formatted_number = f"{phone_number[:3]}-{phone_number[3:7]}-{phone_number[7:]}"
+    return formatted_number
+
 #개별문자
 @app.route('/class/<class_name>/send-homework-reminder/', methods=['POST'])
 def send_homework_reminder(class_name):
@@ -495,26 +509,33 @@ def send_homework_reminder(class_name):
 
         if homework_status.get(student_tuple, "") != "✔":  # ✅ 기본값 추가
             phone_number = get_student_phone_number(student['name'], student['class'])
-            print(f"📌 핸드폰 번호 ({student['name']}):", phone_number)
+            formatted_phone_number = format_phone_number(phone_number)
 
-            if phone_number:
-                message_text = create_homework_reminder_message(student)
-                data = {
-                    'messages': [
-                        {
-                            'to': phone_number,
-                            'from': SEND.SENDNUMBER,
-                            'subject': '숙제 미제출 안내',
-                            'text': message_text
-                        }
-                    ]
-                }
-                res = message.send_many(data)
-                print(f"{student['name']}에게 숙제 미제출 알림을 전송했습니다.")
-                print(json.dumps(json.loads(res.text), indent=2, ensure_ascii=False))
+            print(f"📌 핸드폰 번호 ({student['name']}):", formatted_phone_number)
+
+            url = 'https://app.bati.ai/webhook/WuSO9zMFx-8YA7Q6f_NzWQZ3eajtffEKsw1z8mQfleo'
+
+            # 전송할 데이터 (학생명과 전화번호)
+            data = {
+                '학생명': student['name'],  # 학생명
+                '전화번호': formatted_phone_number  # 전화번호
+            }
+
+            # 헤더 설정 (Content-Type을 JSON으로 설정)
+            headers = {'Content-Type': 'application/json'}
+
+            # POST 요청을 보내는 코드
+            response = requests.post(url, data=json.dumps(data), headers=headers)
+
+            # 응답 상태 코드 출력
+            if response.status_code == 200:
+                print("데이터 전송 성공!")
                 message_sent.append(student['name'])
+                message_sent = [name for name in message_sent if name is not None]
 
-            message_sent = [name for name in message_sent if name is not None]
+            else:
+                print(f"데이터 전송 실패. 상태 코드: {response.status_code}")
+
 
     return render_template(
         'homework_reminder_result.html',
@@ -610,12 +631,17 @@ def add_homework():
     homework_data = {
         "과제 제목": data.get("homework_title", ""),
         "학생 이름": data.get("student_name", ""),
+        "전화번호":data.get("student_phone",""),
         "반명": data.get("class_name", ""),  
         "제출 여부": data.get("submission_status") == 'true',
         "제출 마감일": data.get("due_date") if data.get("submission_status") == 'false' and data.get("due_date") else None,
         "업로드 시간": upload_time,
         "첨부 파일": s3_urls
     }
+
+    student_name = homework_data["학생 이름"]
+    student_phone = homework_data["전화번호"]
+
 
     url = "https://api.notion.com/v1/pages"
     properties = {
@@ -625,6 +651,33 @@ def add_homework():
         "제출 여부": {"checkbox": homework_data["제출 여부"]},
         "업로드 시간": {"date": {"start": upload_time}}
     }
+
+
+    #바티 AI 호출
+    url_bati = 'https://app.bati.ai/webhook/jQZeGmeTw5aOJRHCDkhXAVyTTOduEaPrjXcyzpT7aN0'
+
+    # 전송할 데이터 (학생명과 전화번호)
+    bati_data = {
+        '학생명': student_name,  # 학생명
+        '전화번호': student_phone  # 전화번호
+    }
+
+    print(student_name,student_phone)
+
+    # 헤더 설정 (Content-Type을 JSON으로 설정)
+    headers = {'Content-Type': 'application/json'}
+
+    # POST 요청을 보내는 코드
+    response = requests.post(url_bati, json=bati_data, headers=headers)
+
+    # 응답 상태 코드 출력
+    if response.status_code == 200:
+        print(f"{student_name},{student_phone} 데이터 전송 성공!")
+
+
+    else:
+        print(f"데이터 전송 실패. 상태 코드: {response.status_code}")
+
 
     if homework_data["제출 마감일"]:
         properties["제출 마감일"] = {"date": {"start": homework_data["제출 마감일"]}}
