@@ -644,6 +644,8 @@ def add_homework():
 
 
     url = "https://api.notion.com/v1/pages"
+
+
     properties = {
         "과제 제목": {"title": [{"text": {"content": homework_data["과제 제목"]}}]},
         "학생 이름": {"rich_text": [{"text": {"content": homework_data["학생 이름"]}}]},
@@ -651,6 +653,11 @@ def add_homework():
         "제출 여부": {"checkbox": homework_data["제출 여부"]},
         "업로드 시간": {"date": {"start": upload_time}}
     }
+
+    # 만약 제출 마감일이 있을 경우에만 추가
+    if homework_data["제출 마감일"]:
+        properties["제출 마감일"] = {"date": {"start": homework_data["제출 마감일"]}}
+
 
 
     #바티 AI 호출
@@ -682,10 +689,12 @@ def add_homework():
     if homework_data["제출 마감일"]:
         properties["제출 마감일"] = {"date": {"start": homework_data["제출 마감일"]}}
 
-    if s3_urls:
-        properties["첨부 파일"] = {
-            "files": [{"name": img["name"], "external": {"url": img["url"]}} for img in s3_urls]
-        }
+    # 제출한 경우만 첨부 파일 추가
+    if homework_data["제출 여부"]:
+        if s3_urls:
+            properties["첨부 파일"] = {
+                "files": [{"name": img["name"], "external": {"url": img["url"]}} for img in s3_urls]
+            }
 
     payload = {
         "parent": {"database_id": DATABASE_ID},
@@ -693,6 +702,9 @@ def add_homework():
     }
 
     response = requests.post(url, headers=HEADERS, data=json.dumps(payload))
+
+    #print(response.text)
+
 
     if response.status_code == 200:
         return jsonify({"status": "success", "message": "Homework added to Notion."})

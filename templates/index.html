@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>과제 제출</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- SweetAlert2 CSS 추가 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.17/dist/sweetalert2.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -95,6 +97,10 @@
             display: none;
         }
 
+        #attachment_field {
+            display: block; /* 기본적으로 보이게 설정 */
+        }
+
         /* 진행 바 스타일 */
         #progressContainer {
             margin-top: 20px;
@@ -120,7 +126,6 @@
             border-radius: 10px;
         }
 
-        /* 하단 정보 영역 */
         .footer {
             width: 100%;
             background-color: #333;
@@ -168,8 +173,10 @@
                 <input type="date" id="due_date" name="due_date">
             </div>
 
-            <label for="attachment">첨부 파일:</label>
-            <input type="file" id="attachment" name="attachment" multiple>
+            <div id="attachment_field">
+                <label for="attachment">첨부 파일:</label>
+                <input type="file" id="attachment" name="attachment" multiple>
+            </div>
 
             <button type="submit">제출</button>
         </form>
@@ -186,10 +193,19 @@
         <h2>큐이디(Q.E.D)학원</h2>
     </div>
 
+    <!-- SweetAlert2 JS 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.17/dist/sweetalert2.all.min.js"></script>
+
     <script>
         // 전화번호 포맷팅 함수
         function formatPhoneNumber(input) {
             let value = input.value.replace(/\D/g, ''); // 숫자만 추출
+
+            // 11자리가 넘으면 그만 입력하게 함
+            if (value.length > 11) {
+                value = value.slice(0, 11); // 11자리로 잘라냄
+            }
+
             if (value.length <= 3) {
                 input.value = value;
             } else if (value.length <= 6) {
@@ -224,7 +240,16 @@
 
         document.getElementById('submission_status').addEventListener('change', function() {
             var dueDateField = document.getElementById('due_date_field');
-            dueDateField.style.display = this.value === 'false' ? 'block' : 'none';
+            var attachmentField = document.getElementById('attachment_field');
+            
+            // 제출 여부가 "No"일 경우 마감일과 첨부파일을 보여주고, 아니면 숨김
+            if (this.value === 'false') {
+                dueDateField.style.display = 'block';
+                attachmentField.style.display = 'none';
+            } else {
+                dueDateField.style.display = 'none';
+                attachmentField.style.display = 'block';
+            }
         });
 
         // 진행 바 업데이트 함수
@@ -251,12 +276,21 @@
             });
 
             xhr.onload = function() {
-                if (xhr.status === 200) {
-                    alert("파일 업로드 완료!");
-                } else {
-                    alert("파일 업로드 실패!");
-                }
                 progressContainer.style.display = 'none'; // 완료 후 진행 바 숨기기
+
+                if (xhr.status === 200) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '숙제제출 성공!',
+                        text: '숙제 제출이 완료되었습니다.',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '숙제제출 실패!',
+                        text: '숙제 제출에 실패했습니다. 다시 시도해주세요.',
+                    });
+                }
             };
 
             xhr.open('POST', '/add_homework', true);
